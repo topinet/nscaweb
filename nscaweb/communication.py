@@ -99,6 +99,8 @@ class SubmitListener(threading.Thread):
                 else:
                     end = package['external_command'].find('\x17')
                     if end == -1:
+                        if len(tmp) > 0:
+                            tmp += '\\n'
                         tmp += package['external_command']
                     else:
                         package['external_command'] = package['external_command'][:end]
