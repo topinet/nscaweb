@@ -91,12 +91,21 @@ class SubmitListener(threading.Thread):
         self.start()
     def run(self):
         while self.loop.block() == True:
+            tmp = ''
             while not self.input_queue.empty():
                 package=self.input_queue.get()
                 if package['external_command'] == None or package['external_command'] == '':
                     self.logger.error("Request %s produced no output.  It's purged."%(package.get('requestUUID','?')))
                 else:
-                    self.__submit(package)
+                    end = package['external_command'].find('\x17')
+                    if end == -1:
+                        tmp += package['external_command']
+                    else:
+                        package['external_command'] = package['external_command'][:end]
+                        if len(tmp) > 0:
+                            package['external_command'] = tmp + '\\n' + package['external_command']
+                            tmp = ''
+                        self.__submit(package)
             time.sleep(0.1)
         self.logger.info("SubmitListener thread stopped.")
     def dump(self,package):
