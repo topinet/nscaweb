@@ -1,0 +1,14 @@
+# This is a configuration file for /etc/init.d/nscaweb; it allows you to
+# perform common modifications to the behavior of the nscaweb daemon
+# startup without editing the init script (and thus getting prompted
+# by dpkg on upgrades).  We all love dpkg prompts.
+
+# Set to the user nscaweb should run as
+#RUN_AS_USER=root
+
+# nscaweb configuration file
+#CONFIG="/etc/nscaweb/nscaweb.conf"
+
+# If you are receiving check results in a named pipe, before starting
+# nscaweb preserve previously written results (comment to ignore)
+#PIPE="/var/lib/nagios3/rw/nscaweb.fifo"

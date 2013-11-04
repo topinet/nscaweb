@@ -1,0 +1,75 @@
+#!/bin/bash
+### BEGIN INIT INFO
+# Provides:          NSCA Web
+# Required-Start:    $local_fs $remote_fs $network $syslog
+# Required-Stop:     $local_fs $remote_fs $network $syslog
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
+# Short-Description: NSCA Web service for Nagios
+# Description:       NSCAweb is a Nagios core based monitoring solution addon which allows you to easily
+#                    submit (passive) host and service checks over http(s) to the Nagios external command
+#                    file. It aims to be a better,more feature rich alternative than the classic NSCA daemon.
+### END INIT INFO
+
+PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
+DAEMON=/usr/bin/nscaweb
+NAME=nscaweb
+DESC="NSCA Web service for Nagios"
+
+test -x $DAEMON || exit 0
+
+if ! [ -x "/lib/lsb/init-functions" ]; then
+    . /lib/lsb/init-functions
+else
+    echo "E: /lib/lsb/init-functions not found, lsb-base (>= 3.0-6) needed"
+    exit 1
+fi
+
+#edit /etc/default/nscaweb to change these values
+DAEMONUSER=root
+CONFIG="/etc/nscaweb/nscaweb.conf"
+unset $PIPE
+
+# Include nscaweb defaults if available
+if [ -f /etc/default/nscaweb ] ; then
+    . /etc/default/nscaweb
+fi
+
+do_start()
+{
+    log_daemon_msg "Starting $DESC"
+    if [ -z $PIPE ] && [ -f $PIPE ]; then
+        mv $PIPE $PIPE.$$
+    fi
+    start-stop-daemon --start --quiet --user $DAEMONUSER --exec $DAEMON -- start --config $CONFIG
+    if [ -f $PIPE.$$ ]; then
+        sleep 2
+        cat $PIPE.$$ >> $PIPE
+        rm -f $PIPE.$$
+    fi
+    log_end_msg $?
+}
+
+do_stop()
+{
+    log_daemon_msg "Stopping $DESC"
+    start-stop-daemon --stop --quiet --name $NAME --oknodo -- --config $CONFIG
+    log_end_msg $?
+}
+
+case "$1" in
+start)
+    do_start
+    ;;
+stop)
+    do_stop
+    ;;
+restart|force-reload)
+    do_stop
+    do_start
+    ;;
+*)
+    echo "Usage: $0 {start|stop|restart|force-reload}"
+    exit 2
+esac
+
